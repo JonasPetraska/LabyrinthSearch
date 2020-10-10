@@ -30,12 +30,12 @@ namespace LabyrinthSearch.Algorithms
         private int[] _cColumn;
 
         /// <summary>
-        /// umber of trials. To compare effectiveness.
+        /// Number of trials. To compare effectiveness.
         /// </summary>
         private int _trials;
 
         /// <summary>
-        /// Move’s number. Starts from2. Visited positions are marked.
+        /// Move’s number. Starts from 2. Visited positions are marked.
         /// </summary>
         private int _l;
 
@@ -106,8 +106,8 @@ namespace LabyrinthSearch.Algorithms
                 //Compute nodes
                 var nodes = new List<(int x, int y)>();
                 for (int i = 2; i <= _l; i++)
-                    for (int u = 0; u < _labyrinthHeight - 1; u++)
-                        for (int v = 0; v < _labyrinthWidth - 1; v++)
+                    for (int u = 0; u < _labyrinthHeight; u++)
+                        for (int v = 0; v < _labyrinthWidth; v++)
                             if (_operationalLabyrinth[u, v] == i)
                                 nodes.Add((v + 1, u + 1));
                 //Print rules

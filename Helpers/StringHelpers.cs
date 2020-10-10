@@ -36,14 +36,14 @@ namespace LabyrinthSearch.Helpers
         {
             //Compute first line
             var firstLine = new StringBuilder();
-            firstLine.Append("     ");
+            firstLine.Append("       ");
             firstLine.Append("Y, V");
 
             Console.WriteLine(firstLine);
 
             //Compute second line
             var secondLine = new StringBuilder();
-            secondLine.Append("     ");
+            secondLine.Append("       ");
             secondLine.Append("^");
 
             for (int i = 8; i < width; i++)
@@ -56,11 +56,11 @@ namespace LabyrinthSearch.Helpers
             {
                 var line = new StringBuilder();
                 line.Append("    ");
-                line.Append(height - i);
+                line.Append(string.Format("{0,3}", height - i));
                 line.Append("|");
 
                 for (int j = 0; j < width; j++)
-                    line.Append(string.Format(" {0, 2} ", matrix[i, j]));
+                    line.Append(string.Format(" {0,3} ", matrix[i, j]));
 
                 Console.WriteLine(line.ToString());
             }
@@ -70,7 +70,7 @@ namespace LabyrinthSearch.Helpers
             var secondToLastLine = new StringBuilder();
             secondToLastLine.Append("     ");
 
-            for (int i = 0; i < width * 4 + 3; i++)
+            for (int i = 0; i < width * 5 + 3; i++)
                 secondToLastLine.Append("-");
 
             secondToLastLine.Append(">");
@@ -81,9 +81,9 @@ namespace LabyrinthSearch.Helpers
 
             //Compute last line
             var lastLine = new StringBuilder();
-            lastLine.Append("      ");
+            lastLine.Append("        ");
             for (int i = 1; i <= width; i++)
-                lastLine.Append(string.Format(" {0, 2} ", i));
+                lastLine.Append(string.Format(" {0, 3} ", i));
 
             Console.WriteLine(lastLine.ToString());
         }

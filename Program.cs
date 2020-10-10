@@ -2,6 +2,7 @@
 using LabyrinthSearch.Algorithms;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,43 +13,41 @@ namespace LabyrinthSearch
     {
         static void Main(string[] args)
         {
-            var labyrinth = new int[7, 7]
+            //Read file
+            Console.WriteLine("Please provide a file name:");
+            var fileName = Console.ReadLine();
+            if (String.IsNullOrEmpty(fileName))
             {
-                {1, 1, 1, 1, 1, 0, 1 },
-                {0, 0, 0, 0, 0, 0, 0 },
-                {1, 1, 1, 1, 0, 1, 1 },
-                {1, 0, 0, 0, 0, 1, 1 },
-                {1, 0, 1, 0, 1, 1, 1 },
-                {1, 0, 0, 0, 1, 1, 1 },
-                {1, 1, 1, 1, 1, 1, 1 }
-            };
+                Console.WriteLine("Please provide a file name.");
+                return;
+            }
 
-            var labyrinth2 = new int[7, 7]
+            if (!File.Exists(fileName))
             {
-                {1, 1, 1, 1, 1, 1, 1 },
-                {1, 0, 0, 0, 1, 1, 1 },
-                {1, 0, 1, 0, 1, 1, 1 },
-                {1, 0, 0, 0, 0, 1, 1 },
-                {1, 1, 1, 1, 0, 1, 1 },
-                {0, 0, 0, 0, 0, 0, 0 },
-                {1, 1, 1, 1, 1, 0, 1 }
-            };
+                Console.WriteLine($"File {fileName} is not found.");
+                Console.ReadKey();
+                return;
+            }
 
-            var labyrinth3 = new int[9, 17]
+            var text = File.ReadAllText(fileName);
+            var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var height = lines.Count() - 1;
+            var width = lines[0].Split(' ').Count();
+
+            var labyrinth = new int[height, width];
+            for(int i = 0; i < height; i++)
             {
-                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, // 1
-                {1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1 }, // 2
-                {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1 }, // 3
-                {1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1 }, // 4
-                {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1 }, // 5
-                {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1 }, // 6
-                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }, // 7
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 8
-                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 } // 9
-            };
+                var line = lines[i].Split(' ');
+                for (int j = 0; j < line.Length; j++)
+                    labyrinth[i, j] = int.Parse(line[j]);
+            }
 
-            //IAlgorithm algorithm = new DepthFirstSearchAlgorithm(labyrinth2, 3, 4);
-            IAlgorithm algorithm = new DepthFirstSearchAlgorithm(labyrinth3, 5, 8);
+            var startCoordinates = lines.Last().Split(' ');
+            var x = int.Parse(startCoordinates[0]);
+            var y = int.Parse(startCoordinates[1]);
+
+            IAlgorithm algorithm = new DepthFirstSearchAlgorithm(labyrinth, y - 1, x - 1);
+            //IAlgorithm algorithm = new DepthFirstSearchAlgorithm(labyrinth3, 5, 8);
             algorithm.Execute();
             Console.ReadKey();
         }

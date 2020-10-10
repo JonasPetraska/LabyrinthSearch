@@ -53,5 +53,10 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Samples\input-17x9.txt" />
+    <Content Include="Samples\input-20x15.txt" />
+    <Content Include="Samples\input-7x7.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
