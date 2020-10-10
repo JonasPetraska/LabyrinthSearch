@@ -1,4 +1,5 @@
 ﻿using LabyrinthSearch.Abstractions;
+using LabyrinthSearch.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +17,8 @@ namespace LabyrinthSearch.Algorithms
         //Labyrinth copy, to operate on
         private int[,] _operationalLabyrinth;
 
-        private readonly int _startX;
-        private readonly int _startY;
+        private readonly int _startRow;
+        private readonly int _startColumn;
 
         private readonly int _labyrinthWidth;
         private readonly int _labyrinthHeight;
@@ -25,8 +26,8 @@ namespace LabyrinthSearch.Algorithms
         //Variables for keeping status
 
         //4 production –shifts in X and Y.
-        private int[] _cx;
-        private int[] _cy;
+        private int[] _cRow;
+        private int[] _cColumn;
 
         /// <summary>
         /// umber of trials. To compare effectiveness.
@@ -38,85 +39,174 @@ namespace LabyrinthSearch.Algorithms
         /// </summary>
         private int _l;
 
-        public DepthFirstSearchAlgorithm(int[,] labyrinth, int startX, int startY)
+        private int _level;
+
+        public DepthFirstSearchAlgorithm(int[,] labyrinth, int startRow, int startColumn)
         {
             _labyrinth = labyrinth;
-            _labyrinthWidth = labyrinth.GetLength(0);
-            _labyrinthHeight = labyrinth.GetLength(1);
-            _startX = startX;
-            _startY = startY;
+            _labyrinthWidth = labyrinth.GetLength(1);
+            _labyrinthHeight = labyrinth.GetLength(0);
+            _startRow = startRow;
+            _startColumn = startColumn;
         }
 
         public void Execute()
         {
             //Initialize variables
-            _cx = new int[4];
-            _cy = new int[4];
-            _cx[0] = -1; _cy[0] = 0; //Go West.   4
-            _cx[1] = 0; _cy[1] = -1; //Go South.   1 * 3
-            _cx[2] = 1; _cy[2] = 0; //Go East.      2
-            _cx[3] = 0; _cy[3] = 1; //Go North.
+            _cRow = new int[4];
+            _cColumn = new int[4];
 
-            _trials = 0;
+            //Set-up production rules
+            _cRow[0] = 0; _cColumn[0] = -1; //Go West.   4 (left)
+            _cRow[1] = -1; _cColumn[1] = 0; //Go South.   1 * 3 (down)
+            _cRow[2] = 0; _cColumn[2] = 1; //Go East.      2 (right)
+            _cRow[3] = 1; _cColumn[3] = 0; //Go North. (up)
+
             _operationalLabyrinth = (int[,])_labyrinth.Clone();
+            _l = 2;
 
-            var result = ExecuteInternal(_startX, _startY);
-            Console.WriteLine(result);
+            PrintPart1();
+            Console.WriteLine("PART 2. Trace");
 
+            _level = 0;
+            _trials = 0;
+            _operationalLabyrinth[_startRow, _startColumn] = _l;
+
+            var trace = new StringBuilder();
+
+            var result = ExecuteInternal(_startRow, _startColumn, trace);
+
+            //Add trace of terminal state
+            if (result) 
+            {
+                var strTrace = trace.ToString();
+                trace = new StringBuilder().Append(strTrace.Remove(strTrace.LastIndexOf(System.Environment.NewLine))).Append(" Terminal.");
+            }
+
+            //Print trace
+            Console.WriteLine(trace);
+            Console.WriteLine();
+
+            //Print results
+            Console.WriteLine("PART 3. Results");
+            Console.WriteLine();
+
+            Console.WriteLine($"3.1. {(result ? "Path is found" : "Path is not found")}.");
+            Console.WriteLine();
+
+            Console.WriteLine("3.2. Path graphically:");
+            Console.WriteLine();
+
+            StringHelpers.PrintMatrix(_labyrinthWidth, _labyrinthHeight, ArrayHelpers.ReverseY(_operationalLabyrinth));
+            Console.WriteLine();
+
+            //If path is found - print nodes and rules
             if (result)
             {
-                for(int i = 0; i < _labyrinthWidth; i++)
-                {
-                    for(int j = 0; j < _labyrinthHeight; j++)
-                    {
-                        Console.Write(string.Format("{0,2} ", _operationalLabyrinth[i, j]));
-                    }
+                //Compute nodes
+                var nodes = new List<(int x, int y)>();
+                for (int i = 2; i <= _l; i++)
+                    for (int u = 0; u < _labyrinthHeight - 1; u++)
+                        for (int v = 0; v < _labyrinthWidth - 1; v++)
+                            if (_operationalLabyrinth[u, v] == i)
+                                nodes.Add((v + 1, u + 1));
+                //Print rules
+                var rules = new List<string>();
+                for (int i = 0; i < nodes.Count; i++)
+                    for (int j = 0; j < 4; j++)
+                        if (i != nodes.Count - 1 && nodes[i + 1].x == nodes[i].x + _cColumn[j] && nodes[i + 1].y == nodes[i].y + _cRow[j])
+                            rules.Add($"R{j + 1}");
 
-                    Console.WriteLine();
-                }
+
+                Console.WriteLine($"3.3. Rules: {string.Join(", ", rules)}.");
+                Console.WriteLine();
+
+                Console.WriteLine($"3.4. Nodes: {string.Join(", ", nodes.Select(n => $"[X={n.x},Y={n.y}]"))}.");
             }
         }
 
-        private bool ExecuteInternal(int x, int y)
+        /// <summary>
+        /// Internal recursive algorithm
+        /// </summary>
+        /// <param name="row">Row to start algorithm from</param>
+        /// <param name="column">Column to start algorithm from</param>
+        /// <returns>True - path found, false - path wasn't found</returns>
+        private bool ExecuteInternal(int row, int column, StringBuilder trace)
         {
-            if (x == 0 || x == _labyrinthWidth - 1 || y == 0 || y == _labyrinthHeight - 1)
+            if (row == 0 || row == _labyrinthHeight - 1 || column == 0 || column == _labyrinthWidth - 1)
                 return true; //TERM(DATA} = true on the boarder.
 
             //New position
-            var newX = 0;
-            var newY = 0;
+            var newRow = 0;
+            var newColumn = 0;
+
+            _level++;
 
             //Loop over production rules
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
-                newX = x + _cx[i];
-                newY = y + _cy[i];
-                
+                //Increase number of trials
+                _trials++;
+
+                //Calculate new coordinates
+                newRow = row + _cRow[i];
+                newColumn = column + _cColumn[i];
+
+                trace.Append($"{string.Format("{0,4}", _trials)}) {StringHelpers.RepeatSymbol('-', _level - 1)}R{i + 1}. U={newColumn + 1}, V={newRow + 1}. ");
+
                 //if cell is free
-                if(_operationalLabyrinth[newX, newY] == 0)
+                if (_operationalLabyrinth[newRow, newColumn] == 0)
                 {
-                    //Increase number of trials
-                    _trials++;
+                    trace.Append($"Free. L:=L+1={_l + 1}. LAB[{newColumn + 1},{newRow + 1}]:={_l + 1}.");
+                    trace.AppendLine();
 
                     //Mark cell
                     _l++;
-                    _operationalLabyrinth[newX, newY] = _l;
+                    _operationalLabyrinth[newRow, newColumn] = _l;
 
                     //Recursive call
-                    if(!ExecuteInternal(newX, newY))
+                    if (!ExecuteInternal(newRow, newColumn, trace))
                     {
-                        //then mark. (0in case of BACKTRACK).
-                        _operationalLabyrinth[newX, newY] = -1;
+                        //then mark. (0 in case of BACKTRACK).
+                        _operationalLabyrinth[newRow, newColumn] = -1;
                         _l--;
+                        _level--;
+                        trace.AppendLine($"{string.Format("{0,6}", " ")}{StringHelpers.RepeatSymbol('-', _level)}Backtrack from X={newColumn + 1}, Y={newRow + 1}, L={_l + 1}. LAB[{newColumn + 1},{newRow + 1}]:=-1. L:=L-1={_l}");
                     }
                     else
-                    {
                         return true;
-                    }
+                }
+                //We've already visited it (L starts from 2 by definition)
+                else if (_operationalLabyrinth[newRow, newColumn] >= 2)
+                {
+                    trace.Append("Thread. ");
+                    trace.AppendLine();
+                }
+                //We've hit a wall.
+                else
+                {
+                    trace.Append("Wall. ");
+                    trace.AppendLine();
                 }
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Helper method to print initial data
+        /// </summary>
+        private void PrintPart1()
+        {
+            Console.WriteLine("PART 1. Data");
+            Console.WriteLine("1.1. Labyrinth");
+            Console.WriteLine();
+
+            StringHelpers.PrintMatrix(_labyrinthWidth, _labyrinthHeight, ArrayHelpers.ReverseY(_operationalLabyrinth));
+
+            Console.WriteLine();
+            Console.WriteLine($"1.2. Initial position X={_startColumn+1}, Y={_startRow+1}, L={_l}");
+            Console.WriteLine();
         }
     }
 }

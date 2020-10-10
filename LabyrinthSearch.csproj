@@ -45,6 +45,8 @@
   <ItemGroup>
     <Compile Include="Abstractions\IAlgorithm.cs" />
     <Compile Include="Algorithms\DepthFirstSearchAlgorithm.cs" />
+    <Compile Include="Helpers\ArrayHelpers.cs" />
+    <Compile Include="Helpers\StringHelpers.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
