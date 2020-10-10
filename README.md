@@ -17,3 +17,6 @@ Current method of input is through file.
 Examples are included in `Samples` folder.
 
 Examples can also be found in the text book https://klevas.mif.vu.lt/~cyras/AI/ai-cyras.pdf
+
+# Tests
+Tests can be found on page `35` in text book: https://klevas.mif.vu.lt/~cyras/AI/ai-cyras.pdf
