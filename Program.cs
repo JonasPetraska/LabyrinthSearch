@@ -47,7 +47,6 @@ namespace LabyrinthSearch
             var y = int.Parse(startCoordinates[1]);
 
             IAlgorithm algorithm = new DepthFirstSearchAlgorithm(labyrinth, y - 1, x - 1);
-            //IAlgorithm algorithm = new DepthFirstSearchAlgorithm(labyrinth3, 5, 8);
             algorithm.Execute();
             Console.ReadKey();
         }
