@@ -1,5 +1,6 @@
 ﻿using LabyrinthSearch.Abstractions;
 using LabyrinthSearch.Algorithms;
+using LabyrinthSearch.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,6 +30,16 @@ namespace LabyrinthSearch
                 return;
             }
 
+            //Get log file name
+            Console.WriteLine("Please provide a output file name:");
+            var outputFileName = Console.ReadLine();
+            if (String.IsNullOrEmpty(outputFileName))
+            {
+                Console.WriteLine("Please provide a file name.");
+                return;
+            }
+
+            //Collect input data
             var text = File.ReadAllText(fileName);
             var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
             var height = lines.Count() - 1;
@@ -46,9 +57,14 @@ namespace LabyrinthSearch
             var x = int.Parse(startCoordinates[0]);
             var y = int.Parse(startCoordinates[1]);
 
-            IAlgorithm algorithm = new DepthFirstSearchAlgorithm(labyrinth, y - 1, x - 1);
-            algorithm.Execute();
-            Console.ReadKey();
+            //Execute algorithm
+            //using (var algorithm = new DepthFirstSearchAlgorithm(labyrinth, y - 1, x - 1, new FileLoggerService(outputFileName)))
+            using (var algorithm = new BreadthFirstSearchAlgorithm(labyrinth, y - 1, x - 1, new ConsoleLoggerService()))
+            {
+                algorithm.Execute();
+                Console.WriteLine("Press any key to exit.");
+                Console.ReadKey();
+            }
         }
     }
 }

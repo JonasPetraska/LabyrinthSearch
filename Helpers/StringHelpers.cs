@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LabyrinthSearch.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,14 +33,14 @@ namespace LabyrinthSearch.Helpers
         /// <param name="width">Width of matrix (x-axis)</param>
         /// <param name="height">Height of matrix (y-axis)</param>
         /// <param name="matrix">Matrix</param>
-        public static void PrintMatrix(int width, int height, int[,] matrix)
+        public static void PrintMatrix(int width, int height, int[,] matrix, ILoggerService loggerService)
         {
             //Compute first line
             var firstLine = new StringBuilder();
             firstLine.Append("       ");
             firstLine.Append("Y, V");
 
-            Console.WriteLine(firstLine);
+            loggerService.WriteLine(firstLine.ToString());
 
             //Compute second line
             var secondLine = new StringBuilder();
@@ -49,7 +50,7 @@ namespace LabyrinthSearch.Helpers
             for (int i = 8; i < width; i++)
                 secondLine.Append(" ");
 
-            Console.WriteLine(secondLine.ToString());
+            loggerService.WriteLine(secondLine);
 
             //Compute rest of lines
             for (int i = 0; i < height; i++)
@@ -62,7 +63,7 @@ namespace LabyrinthSearch.Helpers
                 for (int j = 0; j < width; j++)
                     line.Append(string.Format(" {0,3} ", matrix[i, j]));
 
-                Console.WriteLine(line.ToString());
+                loggerService.WriteLine(line);
             }
 
             //Print last lines
@@ -77,7 +78,7 @@ namespace LabyrinthSearch.Helpers
             secondToLastLine.Append(" ");
             secondToLastLine.Append("X,U");
 
-            Console.WriteLine(secondToLastLine.ToString());
+            loggerService.WriteLine(secondToLastLine);
 
             //Compute last line
             var lastLine = new StringBuilder();
@@ -85,7 +86,7 @@ namespace LabyrinthSearch.Helpers
             for (int i = 1; i <= width; i++)
                 lastLine.Append(string.Format(" {0, 3} ", i));
 
-            Console.WriteLine(lastLine.ToString());
+            loggerService.WriteLine(lastLine);
         }
     }
 }

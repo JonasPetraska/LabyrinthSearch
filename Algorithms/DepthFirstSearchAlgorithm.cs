@@ -1,5 +1,6 @@
 ﻿using LabyrinthSearch.Abstractions;
 using LabyrinthSearch.Helpers;
+using LabyrinthSearch.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LabyrinthSearch.Algorithms
 {
-    public class DepthFirstSearchAlgorithm : IAlgorithm
+    public class DepthFirstSearchAlgorithm : IAlgorithm, IDisposable
     {
         //Input data
         //Original labyrinth
@@ -41,13 +42,16 @@ namespace LabyrinthSearch.Algorithms
 
         private int _level;
 
-        public DepthFirstSearchAlgorithm(int[,] labyrinth, int startRow, int startColumn)
+        private ILoggerService _loggerService;
+
+        public DepthFirstSearchAlgorithm(int[,] labyrinth, int startRow, int startColumn, ILoggerService loggerService)
         {
             _labyrinth = labyrinth;
             _labyrinthWidth = labyrinth.GetLength(1);
             _labyrinthHeight = labyrinth.GetLength(0);
             _startRow = startRow;
             _startColumn = startColumn;
+            _loggerService = loggerService;
         }
 
         public void Execute()
@@ -66,7 +70,7 @@ namespace LabyrinthSearch.Algorithms
             _l = 2;
 
             PrintPart1();
-            Console.WriteLine("PART 2. Trace");
+            _loggerService.WriteLine("PART 2. Trace");
 
             _level = 0;
             _trials = 0;
@@ -84,21 +88,21 @@ namespace LabyrinthSearch.Algorithms
             }
 
             //Print trace
-            Console.WriteLine(trace);
-            Console.WriteLine();
+            _loggerService.WriteLine(trace);
+            _loggerService.WriteLine("");
 
             //Print results
-            Console.WriteLine("PART 3. Results");
-            Console.WriteLine();
+            _loggerService.WriteLine("PART 3. Results");
+            _loggerService.WriteLine("");
 
-            Console.WriteLine($"3.1. {(result ? "Path is found" : "Path is not found")}.");
-            Console.WriteLine();
+            _loggerService.WriteLine($"3.1. {(result ? "Path is found" : "Path is not found")}.");
+            _loggerService.WriteLine("");
 
-            Console.WriteLine("3.2. Path graphically:");
-            Console.WriteLine();
+            _loggerService.WriteLine("3.2. Path graphically:");
+            _loggerService.WriteLine("");
 
-            StringHelpers.PrintMatrix(_labyrinthWidth, _labyrinthHeight, ArrayHelpers.ReverseY(_operationalLabyrinth));
-            Console.WriteLine();
+            StringHelpers.PrintMatrix(_labyrinthWidth, _labyrinthHeight, ArrayHelpers.ReverseY(_operationalLabyrinth), _loggerService);
+            _loggerService.WriteLine("");
 
             //If path is found - print nodes and rules
             if (result)
@@ -118,10 +122,10 @@ namespace LabyrinthSearch.Algorithms
                             rules.Add($"R{j + 1}");
 
 
-                Console.WriteLine($"3.3. Rules: {string.Join(", ", rules)}.");
-                Console.WriteLine();
+                _loggerService.WriteLine($"3.3. Rules: {string.Join(", ", rules)}.");
+                _loggerService.WriteLine("");
 
-                Console.WriteLine($"3.4. Nodes: {string.Join(", ", nodes.Select(n => $"[X={n.x},Y={n.y}]"))}.");
+                _loggerService.WriteLine($"3.4. Nodes: {string.Join(", ", nodes.Select(n => $"[X={n.x},Y={n.y}]"))}.");
             }
         }
 
@@ -198,15 +202,20 @@ namespace LabyrinthSearch.Algorithms
         /// </summary>
         private void PrintPart1()
         {
-            Console.WriteLine("PART 1. Data");
-            Console.WriteLine("1.1. Labyrinth");
-            Console.WriteLine();
+            _loggerService.WriteLine("PART 1. Data");
+            _loggerService.WriteLine("1.1. Labyrinth");
+            _loggerService.WriteLine("");
 
-            StringHelpers.PrintMatrix(_labyrinthWidth, _labyrinthHeight, ArrayHelpers.ReverseY(_operationalLabyrinth));
+            StringHelpers.PrintMatrix(_labyrinthWidth, _labyrinthHeight, ArrayHelpers.ReverseY(_operationalLabyrinth), _loggerService);
 
-            Console.WriteLine();
-            Console.WriteLine($"1.2. Initial position X={_startColumn+1}, Y={_startRow+1}, L={_l}");
-            Console.WriteLine();
+            _loggerService.WriteLine("");
+            _loggerService.WriteLine($"1.2. Initial position X={_startColumn+1}, Y={_startRow+1}, L={_l}");
+            _loggerService.WriteLine("");
+        }
+
+        public void Dispose()
+        {
+            _loggerService.Dispose();
         }
     }
 }
