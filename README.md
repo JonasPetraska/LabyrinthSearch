@@ -3,8 +3,9 @@ Artificial intelligence course program for solving labyrinths.
 
 Vilnius University, 2020
 
-# Algorithm
+# Algorithms
 Depth-first recursive algorithm.
+Breadth-first iterative algorithm.
 
 There is space for implementing more algorithms.
 
