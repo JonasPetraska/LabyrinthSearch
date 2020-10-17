@@ -48,6 +48,7 @@
     <Compile Include="Algorithms\DepthFirstSearchAlgorithm.cs" />
     <Compile Include="Helpers\ArrayHelpers.cs" />
     <Compile Include="Helpers\StringHelpers.cs" />
+    <Compile Include="Models\BreadthFirstResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ConsoleLoggerService.cs" />
@@ -61,10 +62,13 @@
     <Content Include="Samples\input-17x9.txt" />
     <Content Include="Samples\input-20x15.txt" />
     <Content Include="Samples\input-7x7.txt" />
+    <Content Include="Samples\outputs\output-7x7-Breadth.txt" />
     <Content Include="Samples\outputs\output-17x9-0.txt" />
     <Content Include="Samples\outputs\output-17x9-1.txt" />
+    <Content Include="Samples\outputs\output-17x9-Breadth.txt" />
     <Content Include="Samples\outputs\output-20x15-0.txt" />
     <Content Include="Samples\outputs\output-20x15-1.txt" />
+    <Content Include="Samples\outputs\output-20x15-Breadth.txt" />
     <Content Include="Samples\outputs\output-7x7-0.txt" />
     <Content Include="Samples\outputs\output-7x7-1.txt" />
   </ItemGroup>

@@ -59,7 +59,7 @@ namespace LabyrinthSearch
 
             //Execute algorithm
             //using (var algorithm = new DepthFirstSearchAlgorithm(labyrinth, y - 1, x - 1, new FileLoggerService(outputFileName)))
-            using (var algorithm = new BreadthFirstSearchAlgorithm(labyrinth, y - 1, x - 1, new ConsoleLoggerService()))
+            using (var algorithm = new BreadthFirstSearchAlgorithm(labyrinth, y - 1, x - 1, new FileLoggerService(outputFileName)))
             {
                 algorithm.Execute();
                 Console.WriteLine("Press any key to exit.");

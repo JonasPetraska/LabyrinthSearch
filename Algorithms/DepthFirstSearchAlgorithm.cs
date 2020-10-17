@@ -114,7 +114,7 @@ namespace LabyrinthSearch.Algorithms
                         for (int v = 0; v < _labyrinthWidth; v++)
                             if (_operationalLabyrinth[u, v] == i)
                                 nodes.Add((v + 1, u + 1));
-                //Print rules
+                //Compute rules
                 var rules = new List<string>();
                 for (int i = 0; i < nodes.Count; i++)
                     for (int j = 0; j < 4; j++)

@@ -1,5 +1,6 @@
 ﻿using LabyrinthSearch.Abstractions;
 using LabyrinthSearch.Helpers;
+using LabyrinthSearch.Models;
 using LabyrinthSearch.Services;
 using System;
 using System.Collections.Generic;
@@ -94,16 +95,13 @@ namespace LabyrinthSearch.Algorithms
             _fColumn[0] = _startColumn;
             _fRow[0] = _startRow;
 
-
-            _loggerService.WriteLine($"WAVE {_wave}, label L=\"{_l}\". Initial position: X={_startColumn + 1}, Y={_startRow + 1}, NEWN={_new + 1}");
-
             var result = ExecuteInternal(_startRow, _startColumn);
 
             //Print results
             _loggerService.WriteLine("PART 3. Results");
             _loggerService.WriteLine("");
 
-            _loggerService.WriteLine($"3.1. {(result ? "Path is found" : "Path is not found")}.");
+            _loggerService.WriteLine($"3.1. {(result.IsSuccess ? "Path is found" : "Path is not found")}.");
             _loggerService.WriteLine("");
 
             _loggerService.WriteLine("3.2. Path graphically:");
@@ -114,27 +112,12 @@ namespace LabyrinthSearch.Algorithms
             _loggerService.WriteLine("");
 
             //If path is found - print nodes and rules
-            if (result)
+            if (result.IsSuccess)
             {
-                //Compute nodes
-                var nodes = new List<(int x, int y)>();
-                for (int i = 2; i <= _l; i++)
-                    for (int u = 0; u < _labyrinthHeight; u++)
-                        for (int v = 0; v < _labyrinthWidth; v++)
-                            if (_operationalLabyrinth[u, v] == i)
-                                nodes.Add((v + 1, u + 1));
-                //Print rules
-                var rules = new List<string>();
-                for (int i = 0; i < nodes.Count; i++)
-                    for (int j = 0; j < 4; j++)
-                        if (i != nodes.Count - 1 && nodes[i + 1].x == nodes[i].x + _cColumn[j] && nodes[i + 1].y == nodes[i].y + _cRow[j])
-                            rules.Add($"R{j + 1}");
-
-
-                _loggerService.WriteLine($"3.3. Rules: {string.Join(", ", rules)}.");
+                _loggerService.WriteLine($"3.3. Rules: {string.Join(", ", result.Rules)}.");
                 _loggerService.WriteLine("");
 
-                _loggerService.WriteLine($"3.4. Nodes: {string.Join(", ", nodes.Select(n => $"[X={n.x},Y={n.y}]"))}.");
+                _loggerService.WriteLine($"3.4. Nodes: {string.Join(", ", result.Path.Select(n => $"[X={n.Value + 1},Y={n.Key + 1}]"))}.");
             }
         }
 
@@ -144,35 +127,27 @@ namespace LabyrinthSearch.Algorithms
         /// <param name="row">Row to start at</param>
         /// <param name="column">Column to start at</param>
         /// <returns>True - if path is found, false - if path is not found.</returns>
-        private bool ExecuteInternal(int row, int column)
+        private BreadthFirstResult ExecuteInternal(int row, int column)
         {
+            var result = new BreadthFirstResult();
             if (row == 0 || row == _labyrinthHeight - 1 || column == 0 || column == _labyrinthWidth - 1)
-                return true;
+            {
+                result.IsSuccess = true;
+                GetTrace(row, column, result);
+                return result;
+            }
 
             var newRow = 0;
             var newColumn = 0;
-            var printHeader = false;
+
             while (_close <= _new)
             {
                 row = _fRow[_close];
                 column = _fColumn[_close];
 
-                if (printHeader)
-                {
-                    _wave++;
-                    _loggerService.WriteLine($"Wave {_wave}, label L=\"{_operationalLabyrinth[row, column]}\"");
-                }
-
                 //Loop over production rules
                 for (int i = 0; i < 4; i++)
                 {
-
-                    if (printHeader)
-                    {
-                        _wave++;
-                        _loggerService.WriteLine($"Wave {_wave}, label L=\"{_operationalLabyrinth[row, column]}\"");
-                    }
-
                     //Calculate new coordinates
                     newRow = row + _cRow[i];
                     newColumn = column + _cColumn[i];
@@ -181,66 +156,175 @@ namespace LabyrinthSearch.Algorithms
                     if (_operationalLabyrinth[newRow, newColumn] == 0)
                     {
                         _operationalLabyrinth[newRow, newColumn] = _operationalLabyrinth[row, column] + 1;
-                        printHeader = true;
                         if (newRow == 0 || newRow == _labyrinthHeight - 1 || newColumn == 0 || newColumn == _labyrinthWidth - 1)
                         {
-                            if (printHeader)
-                            {
-                                _wave++;
-                                _loggerService.WriteLine($"Wave {_wave}, label L=\"{_operationalLabyrinth[newRow, newColumn]}\"");
-                            }
-                            //var trace = GetTrace(newRow, newColumn);
-                            //PrintTrace(newRow, newColumn);
-                            return true;
+                            GetTrace(newRow, newColumn, result);
+                            result.IsSuccess = true;
+                            return result;
                         }
 
                         _new++;
                         _fRow[_new] = newRow;
                         _fColumn[_new] = newColumn;
                     }
-                    else
-                        printHeader = false;
                 }
 
                 _close++;
             }
 
-            return false;
+            return result;
         }
 
-        //private string GetTrace(int endRow, int endColumn)
-        //{
-        //    var trace = new StringBuilder();
-        //    var newRow = 0;
-        //    var newColumn = 0;
+        private void GetTrace(int endRow, int endColumn, BreadthFirstResult result)
+        {
+            var newRow = 0;
+            var newColumn = 0;
 
-        //    _labyrinth[endRow, endColumn] = _operationalLabyrinth[endRow, endColumn];
+            var endRowCopy = endRow;
+            var endColumnCopy = endColumn;
+            var labCopy = (int[,])_labyrinth.Clone();
 
-        //    var k = 4;
+            var endRowNotChanged = endRow;
+            var endColumnNotChanged = endColumn;
 
-        //    while (_labyrinth[endRow, endColumn] != 2)
-        //    {
-        //        k--;
-        //        //_loggerService.WriteLine($"Wave {_operationalLabyrinth[endRow, endColumn]}, label L=\"{_operationalLabyrinth[endRow, endColumn]}\"");
-        //        newRow = endRow + _cRow[k];
-        //        newColumn = endColumn + _cColumn[k];
+            _labyrinth[endRow, endColumn] = _operationalLabyrinth[endRow, endColumn];
 
-        //        if (newRow > 0 && newRow < _labyrinthHeight - 1 && newColumn > 0 && newColumn < _labyrinthWidth - 1)
-        //        {
-        //            if (_operationalLabyrinth[newRow, newColumn] == _operationalLabyrinth[endRow, endColumn] - 1)
-        //            {
-        //                _loggerService.WriteLine($"Wave {_operationalLabyrinth[newRow, newColumn]}, label L=\"{_operationalLabyrinth[newRow, newColumn]}\"");
-        //                _labyrinth[newRow, newColumn] = _operationalLabyrinth[newRow, newColumn];
-        //                endRow = newRow;
-        //                endColumn = newColumn;
-        //                k = 4;
-        //            }
-        //        }
+            var path = new List<KeyValuePair<int, int>>();
+            path.Add(new KeyValuePair<int, int>(endRow, endColumn));
 
-        //    }
+            //Collect path
+            do
+            {
+                for (int k = 3; k >= 0; k--)
+                {
+                    newRow = endRow + _cRow[k];
+                    newColumn = endColumn + _cColumn[k];
 
-        //    return trace.ToString();
-        //}
+                    //if in labyrinth
+                    if (newRow > 0 && newRow < _labyrinthHeight - 1 && newColumn > 0 && newColumn < _labyrinthWidth - 1)
+                    {
+                        //if previous number
+                        if (_operationalLabyrinth[newRow, newColumn] == _operationalLabyrinth[endRow, endColumn] - 1)
+                        {
+                            //previous step found
+                            _labyrinth[newRow, newColumn] = _operationalLabyrinth[newRow, newColumn];
+                            endRow = newRow;
+                            endColumn = newColumn;
+                            path.Add(new KeyValuePair<int, int>(endRow, endColumn));
+                        }
+                    }
+                }
+
+            } while (_labyrinth[endRow, endColumn] != 2);
+
+            //Reverse path, first element = start element
+            path.Reverse();
+
+            result.Path = path;
+
+            var newN = 0;
+            var close = 0;
+            newColumn = 0;
+            newRow = 0;
+
+            var processNextIteration = new List<KeyValuePair<int, int>>();
+            var processNextIterationCopy = new List<KeyValuePair<int, int>>();
+
+            //Collect trace
+            for (int i = 0; i < path.Count; i++)
+            {
+                processNextIteration = new List<KeyValuePair<int, int>>(processNextIterationCopy);
+                processNextIterationCopy.Clear();
+                _loggerService.Write($"Wave {i}, label L=\"{_operationalLabyrinth[path[i].Key, path[i].Value]}\"");
+
+                if (i == 0)
+                {
+                    _loggerService.Write($". Initial position: X={path[i].Value + 1}, Y={path[i].Key + 1}, NEWN={newN + 1}");
+                    processNextIterationCopy.Add(new KeyValuePair<int, int>(path[i].Key, path[i].Value));
+                    _loggerService.WriteLine("");
+                    continue;
+                }
+
+                _loggerService.WriteLine("");
+
+                for (int j = 0; j < processNextIteration.Count; j++)
+                {
+                    _loggerService.WriteLine($"     Close CLOSE={close + 1}, X={processNextIteration[j].Value + 1}, Y={processNextIteration[j].Key + 1}.");
+                    close++;
+
+                    for (int k = 0; k < 4; k++)
+                    {
+                        newRow = processNextIteration[j].Key + _cRow[k];
+                        newColumn = processNextIteration[j].Value + _cColumn[k];
+
+                        _loggerService.Write($"         R{k + 1}. X={newColumn + 1}, Y={newRow + 1}.");
+
+                        //if in labyrinth
+                        if ((newRow > 0 && newRow < _labyrinthHeight - 1 && newColumn > 0 && newColumn < _labyrinthWidth - 1) || 
+                            (newRow == endRowNotChanged && newColumn == endColumnNotChanged))
+                        {
+                            //if terminal.
+                            if (newRow == endRowNotChanged && newColumn == endColumnNotChanged)
+                            {
+                                endRowCopy = newRow;
+                                endColumnCopy = newColumn;
+                                newN++;
+                                _loggerService.Write($" Free. NEWN={newN + 1}. Terminal.");
+                                processNextIterationCopy.Add(new KeyValuePair<int, int>(newRow, newColumn));
+                                _loggerService.WriteLine("");
+                                goto terminalCheckpoint;
+
+                            }
+                            //if next number
+                            else if (_operationalLabyrinth[newRow, newColumn] + 1 == _operationalLabyrinth[endRowCopy, endColumnCopy])
+                            {
+                                endRowCopy = newRow;
+                                endColumnCopy = newColumn;
+                                newN++;
+                                _loggerService.Write($" Free. NEWN={newN + 1}");
+                                processNextIterationCopy.Add(new KeyValuePair<int, int>(newRow, newColumn));
+                            }
+                            //if free
+                            else if (labCopy[newRow, newColumn] == 0)
+                            {
+                                if (_fRow[newN + 1] == newRow && _fColumn[newN + 1] == newColumn)
+                                {
+                                    newN++;
+                                    _loggerService.Write($" Free. NEWN={newN + 1}");
+                                    processNextIterationCopy.Add(new KeyValuePair<int, int>(newRow, newColumn));
+                                }
+                                else
+                                {
+                                    _loggerService.Write($" CLOSED OR OPEN.");
+                                }
+                            }
+                            //if wall
+                            else if(labCopy[newRow, newColumn] == 1)
+                            {
+                                _loggerService.Write($" Wall.");
+                            }
+                        }
+                        else
+                        {
+                            _loggerService.Write($" Wall.");
+                        }
+
+                        _loggerService.WriteLine("");
+                    }
+                }
+            }
+
+            terminalCheckpoint:
+
+            //Compute rules
+            var rules = new List<string>();
+            for (int i = 0; i < path.Count; i++)
+                for (int j = 0; j < 4; j++)
+                    if (i != path.Count - 1 && path[i + 1].Value == path[i].Value + _cColumn[j] && path[i + 1].Key == path[i].Key + _cRow[j])
+                        rules.Add($"R{j + 1}");
+
+            result.Rules = rules;
+        }
 
         /// <summary>
         /// Helper method to print initial data
